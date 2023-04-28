@@ -1,0 +1,21 @@
+if any(x in instrument_id for x in instrument_ids):
+                # Download audio clip from YouTube
+                audio_filename = f"{video_id}.mp3"
+                audio_path = os.path.join(audio_dir, audio_filename)
+                ydl.download([video_link])
+                print(audio_filename)
+
+
+                # Load audio file and convert to waveform tensor
+                waveform, sample_rate = torchaudio.load(audio_path)
+                waveform = waveform.mean(dim=0, keepdim=True)  # convert stereo to mono
+                waveform = torchaudio.transforms.Resample(sample_rate, 16000)(waveform)  # resample to 16kHz
+                waveform = torchaudio.transforms.MuLawEncoding()(waveform)  # quantize to 8-bit
+                waveform = waveform.squeeze(0)  # remove batch dimension
+                waveform = waveform.float() / 128.0 - 1.0  # normalize to [-1, 1]
+
+
+                # Save waveform tensor to file
+                waveform_filename = f"{video_id}_{start_time}_{end_time}.pt"
+                waveform_path = os.path.join(audio_dir, waveform_filename)
+                torch.save(waveform, waveform_path)
