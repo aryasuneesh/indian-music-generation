@@ -2,9 +2,6 @@ import torch
 from musiclm_pytorch import MuLaN, AudioSpectrogramTransformer, TextTransformer
 import prepare_dataset
 
-
-
-
 audio_transformer = AudioSpectrogramTransformer(
     dim = 512,
     depth = 6,

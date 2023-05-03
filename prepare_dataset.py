@@ -46,10 +46,13 @@ def get_compiled():
             video_id = row[0][:-1]
             start_time = int(row[1][:-5])
             end_time = int(row[2][:-5])
-            video_link = f"https://www.youtube.com/watch?v={video_id}&t={start_time}s_{end_time}s" 
             instrument_id = row[3].split(",")
-            instrument_desc = [instrument_dict[id] for id in instrument_id if id in instrument_dict]
-            if instrument_desc:
+            if instrument_desc := [
+                instrument_dict[id]
+                for id in instrument_id
+                if id in instrument_dict
+            ]:
+                video_link = f"https://www.youtube.com/watch?v={video_id}&t={start_time}s_{end_time}s"
                 compiled.append([video_link, instrument_desc, start_time, end_time, video_id])
     return compiled
 
@@ -83,7 +86,7 @@ def preprocess_audio(audio_file: str) -> Tuple[np.ndarray, str]:
     """
     sr = 22050
     audio_length = 5
-    waveform, _ = torchaudio.load(audio_file, sr=sr)
+    waveform, _ = torchaudio.load(audio_file)
     num_segments = int(waveform.shape[1] // (sr * audio_length))
     text = np.random.randint(0, 20000, (num_segments, 256))
     
@@ -96,10 +99,10 @@ def get_dataset():
     compiled = get_compiled()
     for data in compiled:
         video_link, instrument_desc, start_time, end_time, video_id = data
-        filename = f"{video_id}.wav.wav"
+        filename = f"{video_id}"
         download_audio(video_link, start_time, end_time, audio_dir, "wav")
         input_file = os.path.join(audio_dir, filename)
-        output_file = os.path.join(audio_dir, f"{video_id}.wav")
+        output_file = os.path.join(audio_dir, f"{video_id}")
         AudioSegment.from_file(input_file).export(output_file, format="wav")
         os.remove(input_file)
         wav, text = preprocess_audio(output_file)
