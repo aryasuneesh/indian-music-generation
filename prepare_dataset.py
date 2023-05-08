@@ -67,7 +67,7 @@ def download_audio(video_link: str, start_time: int, end_time: int, audio_dir: s
     """
     ydl_opts = {
         "format": "bestaudio/best",
-        "outtmpl": os.path.join(audio_dir, f"%(id)s.{audio_format}"),
+        "outtmpl": os.path.join(audio_dir, f"%(id)s"),
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -99,13 +99,16 @@ def get_dataset():
     compiled = get_compiled()
     for data in compiled:
         video_link, instrument_desc, start_time, end_time, video_id = data
-        filename = f"{video_id}"
+        filename = f"{video_id}.wav"
         download_audio(video_link, start_time, end_time, audio_dir, "wav")
         input_file = os.path.join(audio_dir, filename)
         output_file = os.path.join(audio_dir, f"{video_id}")
         AudioSegment.from_file(input_file).export(output_file, format="wav")
         os.remove(input_file)
         wav, text = preprocess_audio(output_file)
+        print(len(wav))
+        print(torch.count_nonzero(wav[0]))
+        print(len(text))
         for i in range(len(wav)):
             dataset.append((wav[i], instrument_desc[i]))
     return dataset
